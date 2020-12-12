@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kleissner/pogreb/internal/hash"
 	"github.com/akrylysov/pogreb/fs"
-	"github.com/akrylysov/pogreb/internal/hash"
 )
 
 const (
@@ -57,13 +57,14 @@ func Open(path string, opts *Options) (*DB, error) {
 	if err := os.MkdirAll(path, 0755); err != nil {
 		return nil, err
 	}
-	lock, acquiredExistingLock, err := createLockFile(opts)
+	lock, _, err := createLockFile(opts)
 	if err != nil {
 		if err == os.ErrExist {
 			err = errLocked
 		}
 		return nil, err
 	}
+	acquiredExistingLock := false
 	clean := lock.Unlock
 	defer func() {
 		if clean != nil {
